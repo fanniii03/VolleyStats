@@ -1,5 +1,4 @@
-# VolleyStats – megvalósítási jegyzet
-
+﻿
 ## Felépítés
 
 Az alkalmazás MVVM mintát használ: a `Views` csak XAML felületeket tartalmaz, a felhasználói műveletek és validációk a `ViewModels` mappában vannak, a `Models` az adatosztályokat, a `Services/DatabaseService.cs` pedig az SQLite-perzisztenciát kezeli. A `MauiProgram.cs` függőséginjektálással köti össze őket.
