@@ -1,33 +1,93 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="VolleyStats.Views.StandingsPage" Title="Tabella" BackgroundColor="#1A1C23">
-    <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="10">
-        <Label Text="Bajnoki tabella" FontSize="28" FontAttributes="Bold" TextColor="#F4D03F" />
-        <Label Grid.Row="1" Text="Csak a lejátszott mérkőzések számítanak. Pontozás: 3:0/3:1 = 3–0 pont, 3:2 = 2–1 pont." TextColor="#94A3B8" FontSize="12" />
-        <CollectionView Grid.Row="2" ItemsSource="{Binding Standings}">
-            <CollectionView.EmptyView><Label Text="Még nincs lejátszott mérkőzés." TextColor="#94A3B8" HorizontalOptions="Center" Margin="0,30" /></CollectionView.EmptyView>
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VolleyStats.Views.StandingsPage"
+             Title="Tabella"
+             BackgroundColor="#1A1C23">
+    <Grid Padding="16"
+          RowDefinitions="Auto,Auto,*"
+          RowSpacing="10">
+        <Label Text="Bajnoki tabella"
+               FontSize="28"
+               FontAttributes="Bold"
+               TextColor="#F4D03F" />
+        <Label Grid.Row="1"
+               Text="Csak a lejátszott mérkőzések számítanak. Pontozás: 3:0/3:1 = 3–0 pont, 3:2 = 2–1 pont."
+               TextColor="#94A3B8"
+               FontSize="12" />
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Standings}">
+            <CollectionView.EmptyView>
+                <Label Text="Még nincs lejátszott mérkőzés."
+                       TextColor="#94A3B8"
+                       HorizontalOptions="Center"
+                       Margin="0,30" />
+            </CollectionView.EmptyView>
             <CollectionView.Header>
-                <Grid ColumnDefinitions="2.3*,.55*,.55*,.55*,.8*,.6*" Padding="8">
-                    <Label Text="CSAPAT" TextColor="#94A3B8" FontSize="11" />
-                    <Label Grid.Column="1" Text="M" TextColor="#94A3B8" HorizontalTextAlignment="Center" />
-                    <Label Grid.Column="2" Text="GY" TextColor="#94A3B8" HorizontalTextAlignment="Center" />
-                    <Label Grid.Column="3" Text="V" TextColor="#94A3B8" HorizontalTextAlignment="Center" />
-                    <Label Grid.Column="4" Text="SZ" TextColor="#94A3B8" HorizontalTextAlignment="Center" />
-                    <Label Grid.Column="5" Text="P" TextColor="#F4D03F" HorizontalTextAlignment="Center" />
+                <Grid ColumnDefinitions="2.3*,.55*,.55*,.55*,.8*,.6*"
+                      Padding="8">
+                    <Label Text="CSAPAT"
+                           TextColor="#94A3B8"
+                           FontSize="11" />
+                    <Label Grid.Column="1"
+                           Text="M"
+                           TextColor="#94A3B8"
+                           HorizontalTextAlignment="Center" />
+                    <Label Grid.Column="2"
+                           Text="GY"
+                           TextColor="#94A3B8"
+                           HorizontalTextAlignment="Center" />
+                    <Label Grid.Column="3"
+                           Text="V"
+                           TextColor="#94A3B8"
+                           HorizontalTextAlignment="Center" />
+                    <Label Grid.Column="4"
+                           Text="SZ"
+                           TextColor="#94A3B8"
+                           HorizontalTextAlignment="Center" />
+                    <Label Grid.Column="5"
+                           Text="P"
+                           TextColor="#F4D03F"
+                           HorizontalTextAlignment="Center" />
                 </Grid>
             </CollectionView.Header>
-            <CollectionView.ItemTemplate><DataTemplate>
-                <Border Margin="0,3" Padding="10" Background="#252836" Stroke="#2A2D39" StrokeShape="RoundRectangle 10">
-                    <Grid ColumnDefinitions="2.3*,.55*,.55*,.55*,.8*,.6*">
-                        <Label Text="{Binding TeamName}" TextColor="#E2E8F0" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                        <Label Grid.Column="1" Text="{Binding Played}" TextColor="#E2E8F0" HorizontalTextAlignment="Center" />
-                        <Label Grid.Column="2" Text="{Binding Won}" TextColor="#5CDB95" HorizontalTextAlignment="Center" />
-                        <Label Grid.Column="3" Text="{Binding Lost}" TextColor="#E06C75" HorizontalTextAlignment="Center" />
-                        <Label Grid.Column="4" Text="{Binding SetsDisplay}" TextColor="#E2E8F0" HorizontalTextAlignment="Center" />
-                        <Label Grid.Column="5" Text="{Binding Points}" TextColor="#F4D03F" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                    </Grid>
-                </Border>
-            </DataTemplate></CollectionView.ItemTemplate>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,3"
+                            Padding="10"
+                            Background="#252836"
+                            Stroke="#2A2D39"
+                            StrokeShape="RoundRectangle 10">
+                        <Grid ColumnDefinitions="2.3*,.55*,.55*,.55*,.8*,.6*">
+                            <Label Text="{Binding TeamName}"
+                                   TextColor="#E2E8F0"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="TailTruncation" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Played}"
+                                   TextColor="#E2E8F0"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Grid.Column="2"
+                                   Text="{Binding Won}"
+                                   TextColor="#5CDB95"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Grid.Column="3"
+                                   Text="{Binding Lost}"
+                                   TextColor="#E06C75"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Grid.Column="4"
+                                   Text="{Binding SetsDisplay}"
+                                   TextColor="#E2E8F0"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Grid.Column="5"
+                                   Text="{Binding Points}"
+                                   TextColor="#F4D03F"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
         </CollectionView>
     </Grid>
 </ContentPage>

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using VolleyStats.Models;
 using VolleyStats.Services;
 
@@ -47,7 +47,8 @@ public class StandingsPageViewModel
             }
         }
         Standings.Clear();
-        foreach (var row in rows.Values.OrderByDescending(r => r.Points).ThenByDescending(r => r.Won).ThenByDescending(r => r.SetsWon - r.SetsLost).ThenBy(r => r.TeamName)) Standings.Add(row);
+        foreach (var row in rows.Values.OrderByDescending(r => r.Points).ThenByDescending(r => r.Won)
+            .ThenByDescending(r => r.SetsWon - r.SetsLost).ThenBy(r => r.TeamName)) Standings.Add(row);
     }
 
     private static StandingRow GetOrCreate(Dictionary<string, StandingRow> rows, string name)

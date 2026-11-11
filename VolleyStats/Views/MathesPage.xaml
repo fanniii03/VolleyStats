@@ -1,39 +1,104 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="VolleyStats.Views.MatchesPage" Title="Meccsek" BackgroundColor="#1A1C23">
-    <Grid RowDefinitions="Auto,*,Auto" Padding="20" RowSpacing="12">
-        <Label Text="Mérkőzések" FontSize="28" FontAttributes="Bold" TextColor="#F4D03F" />
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Matches}" SelectedItem="{Binding SelectedMatch}" SelectionMode="Single" IsEnabled="{Binding IsNotEditing}">
-            <CollectionView.EmptyView><Label Text="Még nincs rögzített mérkőzés." TextColor="#94A3B8" HorizontalOptions="Center" /></CollectionView.EmptyView>
-            <CollectionView.ItemTemplate><DataTemplate>
-                <Border Margin="0,5" Padding="14" Background="#252836" Stroke="#2A2D39" StrokeShape="RoundRectangle 12">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                        <Label Text="{Binding HomeTeam}" FontAttributes="Bold" TextColor="#E2E8F0" />
-                        <Label Grid.Column="1" Text="{Binding AwayTeam}" FontAttributes="Bold" TextColor="#E2E8F0" />
-                        <Label Grid.Row="1" Text="{Binding Date, StringFormat='{0:yyyy. MM. dd.}'}" TextColor="#5C9CE6" />
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Location}" TextColor="#94A3B8" />
-                    </Grid>
-                </Border>
-            </DataTemplate></CollectionView.ItemTemplate>
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VolleyStats.Views.MatchesPage"
+             Title="Meccsek"
+             BackgroundColor="#1A1C23">
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="20"
+          RowSpacing="12">
+        <Label Text="Mérkőzések"
+               FontSize="28"
+               FontAttributes="Bold"
+               TextColor="#F4D03F" />
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Matches}"
+                        SelectedItem="{Binding SelectedMatch}"
+                        SelectionMode="Single"
+                        IsEnabled="{Binding IsNotEditing}">
+            <CollectionView.EmptyView>
+                <Label Text="Még nincs rögzített mérkőzés."
+                       TextColor="#94A3B8"
+                       HorizontalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,5"
+                            Padding="14"
+                            Background="#252836"
+                            Stroke="#2A2D39"
+                            StrokeShape="RoundRectangle 12">
+                        <Grid ColumnDefinitions="*,Auto"
+                              RowDefinitions="Auto,Auto">
+                            <Label Text="{Binding HomeTeam}"
+                                   FontAttributes="Bold"
+                                   TextColor="#E2E8F0" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding AwayTeam}"
+                                   FontAttributes="Bold"
+                                   TextColor="#E2E8F0" />
+                            <Label Grid.Row="1"
+                                   Text="{Binding Date, StringFormat='{0:yyyy. MM. dd.}'}"
+                                   TextColor="#5C9CE6" />
+                            <Label Grid.Row="1"
+                                   Grid.Column="1"
+                                   Text="{Binding Location}"
+                                   TextColor="#94A3B8" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
         </CollectionView>
-        <VerticalStackLayout Grid.Row="2" Spacing="8">
-            <VerticalStackLayout IsVisible="{Binding IsNotEditing}" Spacing="8">
-                <Button Text="Új mérkőzés" Command="{Binding NewMatchCommand}" BackgroundColor="#5C9CE6" TextColor="#1A1C23" />
-                <Button Text="Kiválasztott módosítása" Command="{Binding EditMatchCommand}" BackgroundColor="#313A52" TextColor="#E2E8F0" />
-                <Button Text="Kiválasztott törlése" Command="{Binding DeleteMatchCommand}" BackgroundColor="#D9534F" TextColor="White" />
+        <VerticalStackLayout Grid.Row="2"
+                             Spacing="8">
+            <VerticalStackLayout IsVisible="{Binding IsNotEditing}"
+                                 Spacing="8">
+                <Button Text="Új mérkőzés"
+                        Command="{Binding NewMatchCommand}"
+                        BackgroundColor="#5C9CE6"
+                        TextColor="#1A1C23" />
+                <Button Text="Kiválasztott módosítása"
+                        Command="{Binding EditMatchCommand}"
+                        BackgroundColor="#313A52"
+                        TextColor="#E2E8F0" />
+                <Button Text="Kiválasztott törlése"
+                        Command="{Binding DeleteMatchCommand}"
+                        BackgroundColor="#D9534F"
+                        TextColor="White" />
             </VerticalStackLayout>
-            <VerticalStackLayout IsVisible="{Binding IsEditing}" Spacing="8">
-                <Entry Placeholder="Hazai csapat" Text="{Binding HomeTeam}" />
-                <Entry Placeholder="Vendég csapat" Text="{Binding AwayTeam}" />
-                <Entry Placeholder="Helyszín" Text="{Binding Location}" />
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                    <Entry Placeholder="Hazai szett" Text="{Binding HomeSetsWonText}" Keyboard="Numeric" />
-                    <Entry Grid.Column="1" Placeholder="Vendég szett" Text="{Binding AwaySetsWonText}" Keyboard="Numeric" />
+            <VerticalStackLayout IsVisible="{Binding IsEditing}"
+                                 Spacing="8">
+                <Entry Placeholder="Hazai csapat"
+                       Text="{Binding HomeTeam}" />
+                <Entry Placeholder="Vendég csapat"
+                       Text="{Binding AwayTeam}" />
+                <Entry Placeholder="Helyszín"
+                       Text="{Binding Location}" />
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="8">
+                    <Entry Placeholder="Hazai szett"
+                           Text="{Binding HomeSetsWonText}"
+                           Keyboard="Numeric" />
+                    <Entry Grid.Column="1"
+                           Placeholder="Vendég szett"
+                           Text="{Binding AwaySetsWonText}"
+                           Keyboard="Numeric" />
                 </Grid>
                 <DatePicker Date="{Binding MatchDate}" />
-                <Picker Title="Állapot" ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}" />
-                <Label Text="{Binding ErrorMessage}" TextColor="#E06C75" />
-                <Grid ColumnDefinitions="*,*"><Button Text="Mégse" Command="{Binding CancelCommand}" /><Button Grid.Column="1" Text="Mentés" Command="{Binding SaveMatchCommand}" BackgroundColor="#F4D03F" TextColor="#1A1C23" /></Grid>
+                <Picker Title="Állapot"
+                        ItemsSource="{Binding AvailableStatuses}"
+                        SelectedItem="{Binding Status}" />
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#E06C75" />
+                <Grid ColumnDefinitions="*,*">
+                    <Button Text="Mégse"
+                            Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="1"
+                            Text="Mentés"
+                            Command="{Binding SaveMatchCommand}"
+                            BackgroundColor="#F4D03F"
+                            TextColor="#1A1C23" />
+                </Grid>
             </VerticalStackLayout>
         </VerticalStackLayout>
     </Grid>
