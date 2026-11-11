@@ -10,6 +10,7 @@ using VolleyStats.Models;
 
 namespace VolleyStats.ViewModels
 {
+    [QueryProperty(nameof(SelectedPlayer), "Player")]
     public partial class PlayersPageViewModel : ObservableObject
     {
         public ObservableCollection<Team> Teams { get; } = new();

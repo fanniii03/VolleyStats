@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,18 @@ using System.Threading.Tasks;
 
 namespace VolleyStats.Models
 {
-    public  class Player
+    public partial class Player : ObservableObject
     {
-        public string Name { get; set; } = ""; // alapérték hogy a szöveges tulajdonságok ne null értékkel induljanak
-        public int JerseyNumber { get; set; }
-        public string Position { get; set; } = "";
+        public int Id { get; set; }
+        [ObservableProperty]
+        private string name;
+        [ObservableProperty]
+        private int jerseynumber;
+        [ObservableProperty]
+        private string position;
+        [ObservableProperty]
+        private int heightCm;
+        [ObservableProperty]
+        private string photoPath; // A kamera által készített kép helyi útvonala
     }
 }
