@@ -36,8 +36,3 @@ Androidon a kameraengedély a `Platforms/Android/AndroidManifest.xml` fájlban, 
 
 ## Fordítás
 
-```powershell
-dotnet build .\VolleyStats\VolleyStats.csproj -f net9.0-windows10.0.19041.0
-```
-
-Android teszteléshez telepített MAUI Android workload és Android emulátor vagy USB-hibakeresést engedélyező telefon kell.
