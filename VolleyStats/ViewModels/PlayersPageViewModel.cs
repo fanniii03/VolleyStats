@@ -32,30 +32,68 @@ public partial class PlayersPageViewModel : ObservableObject
     private string teamErrorMessage = "";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsNotEditing))] private bool isEditing;
     public bool IsNotEditing => !IsEditing;
+    private bool isLoading;
 
-    public PlayersPageViewModel(DatabaseService database) => this.database = database;
+    public PlayersPageViewModel(DatabaseService database)
+    { this.database = database; }
 
+    //public async Task LoadAsync()
+    //{
+    //    await database.InitializeAsync();
+    //    var selectedTeamId = SelectedTeam?.Id;
+    //    Teams.Clear();
+    //    foreach (var team in await database.GetTeamsAsync()) 
+    //        Teams.Add(team);
+    //    SelectedTeam = Teams.FirstOrDefault(t => t.Id == selectedTeamId) 
+    //        ?? Teams.FirstOrDefault();
+    //    await LoadPlayersAsync();
+    //}
     public async Task LoadAsync()
     {
         await database.InitializeAsync();
+
         var selectedTeamId = SelectedTeam?.Id;
-        Teams.Clear();
-        foreach (var team in await database.GetTeamsAsync()) Teams.Add(team);
-        SelectedTeam = Teams.FirstOrDefault(t => t.Id == selectedTeamId) ?? Teams.FirstOrDefault();
+
+        isLoading = true;
+
+        try
+        {
+            Teams.Clear();
+
+            foreach (var team in await database.GetTeamsAsync())
+                Teams.Add(team);
+
+            SelectedTeam = Teams.FirstOrDefault(t => t.Id == selectedTeamId)
+                           ?? Teams.FirstOrDefault();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+
         await LoadPlayersAsync();
     }
 
-    partial void OnSelectedTeamChanged(Team? value) => _ = LoadPlayersAsync();
-    partial void OnSelectedPlayerChanged(Player? value)
+    partial void OnSelectedTeamChanged(Team? value)
     {
-        if (value is not null && IsNotEditing) _ = OpenProfileAsync(value);
+        if (!isLoading)
+            _ = LoadPlayersAsync();
     }
+    //partial void OnSelectedPlayerChanged(Player? value)
+    //{
+    //    if (value is not null && IsNotEditing) _ = OpenProfileAsync(value);
+    //}
     private async Task LoadPlayersAsync()
     {
         Players.Clear();
         SelectedPlayer = null;
-        if (SelectedTeam is null) return;
-        foreach (var player in await database.GetPlayersAsync(SelectedTeam.Id)) Players.Add(player);
+        if (SelectedTeam is null)
+        {
+            return;
+        }
+
+        foreach (var player in await database.GetPlayersAsync(SelectedTeam.Id)) 
+            Players.Add(player);
     }
 
     [RelayCommand] private async Task AddTeamAsync()
@@ -63,7 +101,10 @@ public partial class PlayersPageViewModel : ObservableObject
         TeamErrorMessage = "";
         var name = NewTeamName.Trim();
         if (string.IsNullOrWhiteSpace(name)) 
-        { TeamErrorMessage = "Add meg a csapat nevét!"; return; }
+        { 
+            TeamErrorMessage = "Add meg a csapat nevét!"; 
+            return; 
+        }
         if (Teams.Any(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase))) 
         { 
             TeamErrorMessage = "Ez a csapat már létezik!"; 
@@ -75,46 +116,84 @@ public partial class PlayersPageViewModel : ObservableObject
     }
 
     [RelayCommand] private void NewPlayer() 
-    { Cancel(); IsEditing = true; }
+    { 
+        Cancel(); 
+        IsEditing = true; 
+    }
     [RelayCommand] private void EditPlayer()
     {
         if (SelectedPlayer is null) 
         { 
             ErrorMessage = "Először válassz ki egy játékost!";
-            return; }
-        PlayerName = SelectedPlayer.Name; JerseyNumberText = SelectedPlayer.JerseyNumber.ToString(); Position = SelectedPlayer.Position; IsEditing = true;
+            return; 
+        }
+        PlayerName = SelectedPlayer.Name; 
+        JerseyNumberText = SelectedPlayer.JerseyNumber.ToString(); 
+        Position = SelectedPlayer.Position; 
+
+        IsEditing = true;
     }
     [RelayCommand] private async Task SavePlayerAsync()
     {
         if (SelectedTeam is null) 
-        { ErrorMessage = "Először válassz ki egy csapatot!"; return; }
+        { 
+            ErrorMessage = "Először válassz ki egy csapatot!"; 
+            return; 
+        }
 
         if (string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(Position)) 
-        { ErrorMessage = "A név és a poszt megadása kötelező."; return; }
+        { 
+            ErrorMessage = "A név és a poszt megadása kötelező."; 
+            return; 
+        }
 
         if (!int.TryParse(JerseyNumberText, out var number) || number is < 0 or > 99) 
-        { ErrorMessage = "A mezszám 0 és 99 közötti egész szám legyen!"; return; }
+        { 
+            ErrorMessage = "A mezszám 0 és 99 közötti egész szám legyen!"; 
+            return; 
+        }
 
-        if (Players.Any(p => p.JerseyNumber == number && p.Id != SelectedPlayer?.Id)) 
-        { ErrorMessage = "Ez a mezszám már foglalt ebben a csapatban!"; return; }
+        if (Players.Any(p => p.JerseyNumber == number 
+        && p.Id != SelectedPlayer?.Id)) 
+        { 
+            ErrorMessage = "Ez a mezszám már foglalt ebben a csapatban!"; 
+            return; 
+        }
 
-        var player = SelectedPlayer ?? new Player { TeamId = SelectedTeam.Id };
+        var player = SelectedPlayer ?? new Player 
+        { 
+            TeamId = SelectedTeam.Id 
+        };
+
         player.Name = PlayerName.Trim(); 
         player.JerseyNumber = number; player.Position = Position;
+
         await database.SaveAsync(player); 
         await LoadPlayersAsync(); Cancel();
     }
     [RelayCommand] private async Task DeletePlayerAsync()
     {
         if (SelectedPlayer is null) 
-        { ErrorMessage = "Válassz ki egy törlendő játékost!"; return; }
+        { 
+            ErrorMessage = "Válassz ki egy törlendő játékost!"; 
+            return; 
+        }
 
-        await database.DeleteAsync(SelectedPlayer); await LoadPlayersAsync(); Cancel();
+        await database.DeleteAsync(SelectedPlayer);
+        await LoadPlayersAsync(); 
+
+        Cancel();
     }
-    [RelayCommand] private async Task OpenProfileAsync(Player? player)
+    [RelayCommand] 
+    private async Task OpenProfileAsync(Player? player)
     {
-        if (player is not null) await Shell.Current.GoToAsync(nameof(PlayerProfilePage), 
-            new Dictionary<string, object> { ["Player"] = player });
+        if (player is not null)
+        {
+            await Shell.Current.GoToAsync(
+                nameof(PlayerProfilePage),
+            new Dictionary<string, object>
+            { ["Player"] = player });
+        }
     }
     [RelayCommand] private void Cancel()
     {

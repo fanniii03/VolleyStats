@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="VolleyStats.Views.PlayersPage"
@@ -92,48 +92,72 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="0,6">
-                            <Border StrokeShape="RoundRectangle 12"
-                                    Stroke="Transparent"
-                                    BackgroundColor="#252836"
-                                    Padding="12">
+                        <Grid ColumnDefinitions="60,*,60"
+                              RowDefinitions="Auto,Auto">
 
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup Name="CommonStates">
-                                        <VisualState Name="Normal" />
-                                        <VisualState Name="Selected">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor"
-                                                        Value="#313A52" />
-                                                <Setter Property="Stroke"
-                                                        Value="#5C9CE6" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
+                            <!-- Mezszám -->
+                            <Label Grid.RowSpan="2"
+                                   Grid.Column="0"
+                                   Text="{Binding JerseyNumber}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center"
+                                   TextColor="#F4D03F" />
 
-                                <Grid ColumnDefinitions="60,*"
-                                      RowDefinitions="Auto,Auto">
+                            <!-- Játékos neve -->
+                            <Label Grid.Column="1"
+                                   Grid.Row="0"
+                                   Text="{Binding Name}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#E2E8F0"
+                                   VerticalOptions="End" />
 
-                                    <Label Grid.RowSpan="2"
-                                           Text="{Binding JerseyNumber}"
-                                           FontSize="28"
+                            <!-- Játékos posztja -->
+                            <Label Grid.Row="1"
+                                   Grid.Column="1"
+                                   Text="{Binding Position}"
+                                   FontSize="13"
+                                   TextColor="#94A3B8"
+                                   VerticalOptions="Start" />
+
+                            <!-- Kör alakú profilkép -->
+                            <Border Grid.Column="2"
+                                    Grid.RowSpan="2"
+                                    WidthRequest="56"
+                                    HeightRequest="56"
+                                    Padding="0"
+                                    Stroke="#5C9CE6"
+                                    StrokeThickness="2"
+                                    StrokeShape="Ellipse"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center">
+
+                                <Grid WidthRequest="52"
+                                      HeightRequest="52">
+
+                                    <!-- Alapértelmezett kép: mezszám -->
+                                    <Label Text="{Binding JerseyNumber}"
+                                           FontSize="20"
                                            FontAttributes="Bold"
-                                           VerticalOptions="Center"
+                                           TextColor="#F4D03F"
                                            HorizontalOptions="Center"
-                                           TextColor="#F4D03F" />
+                                           VerticalOptions="Center" />
 
-                                    <Label Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           FontSize="18"
-                                           FontAttributes="Bold"
-                                           TextColor="#E2E8F0" />
+                                    <!-- Saját profilkép -->
+                                    <Image Source="{Binding PhotoPath}"
+                                           Aspect="AspectFill"
+                                           WidthRequest="52"
+                                           HeightRequest="52">
 
-                                    <Label Grid.Row="1"
-                                           Grid.Column="1"
-                                           Text="{Binding Position}"
-                                           FontSize="13"
-                                           TextColor="#94A3B8" />
+                                        <Image.Clip>
+                                            <EllipseGeometry Center="26,26"
+                                                             RadiusX="26"
+                                                             RadiusY="26" />
+                                        </Image.Clip>
+
+                                    </Image>
 
                                 </Grid>
                             </Border>
@@ -167,6 +191,14 @@
                         Command="{Binding DeletePlayerCommand}"
                         BackgroundColor="#D9534F"
                         TextColor="#FFFFFF"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+                <Button Text="Kiválasztott játékos profilja"
+                        Command="{Binding OpenProfileCommand}"
+                        CommandParameter="{Binding SelectedPlayer}"
+                        BackgroundColor="#5C9CE6"
+                        TextColor="#FFFFFF"
+                        FontAttributes="Bold"
                         CornerRadius="10"
                         HeightRequest="50" />
             </VerticalStackLayout>
@@ -214,7 +246,7 @@
                                     BackgroundColor="#313A52"
                                     TextColor="#E2E8F0"
                                     CornerRadius="10" />
-
+                            
                             <Button Grid.Column="1"
                                     Text="Mentés"
                                     Command="{Binding SavePlayerCommand}"
