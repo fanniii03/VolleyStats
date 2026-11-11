@@ -1,281 +1,125 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VolleyStats.Models;
+using VolleyStats.Services;
+using VolleyStats.Views;
 
-namespace VolleyStats.ViewModels
+namespace VolleyStats.ViewModels;
+
+public partial class PlayersPageViewModel : ObservableObject
 {
-    [QueryProperty(nameof(SelectedPlayer), "Player")]
-    public partial class PlayersPageViewModel : ObservableObject
+    private readonly DatabaseService database;
+    public ObservableCollection<Team> Teams { get; } = new();
+    public ObservableCollection<Player> Players { get; } = new();
+    public IReadOnlyList<string> AvailablePositions { get; } = ["Feladó", "Külső ütő", "Átló", "Középblokkoló", "Liberó"];
+
+    [ObservableProperty] 
+    private Team? selectedTeam;
+    [ObservableProperty] 
+    private Player? selectedPlayer;
+    [ObservableProperty] 
+    private string newTeamName = "";
+    [ObservableProperty] 
+    private string playerName = "";
+    [ObservableProperty] 
+    private string jerseyNumberText = "";
+    [ObservableProperty] 
+    private string position = "";
+    [ObservableProperty] 
+    private string errorMessage = "";
+    [ObservableProperty] 
+    private string teamErrorMessage = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(IsNotEditing))] private bool isEditing;
+    public bool IsNotEditing => !IsEditing;
+
+    public PlayersPageViewModel(DatabaseService database) => this.database = database;
+
+    public async Task LoadAsync()
     {
-        public ObservableCollection<Team> Teams { get; } = new();
-        public ObservableCollection<Player> Players { get; } = new();
-        public List<string> AvailablePositions { get; } = new()
-        {
-            "Feladó (F)",
-            "Négyes ütő / Külső ütő (4Ü)",
-            "Kettes ütő / Átló (Á / 2Ü)",
-            "Center / Középblokkoló (C)",
-            "Liberó (L)"
-        };
-        //[ObservableProperty]
-        //private Team? selectedTeam;
+        await database.InitializeAsync();
+        var selectedTeamId = SelectedTeam?.Id;
+        Teams.Clear();
+        foreach (var team in await database.GetTeamsAsync()) Teams.Add(team);
+        SelectedTeam = Teams.FirstOrDefault(t => t.Id == selectedTeamId) ?? Teams.FirstOrDefault();
+        await LoadPlayersAsync();
+    }
 
-        [ObservableProperty]
-        private Player? selectedPlayer;
+    partial void OnSelectedTeamChanged(Team? value) => _ = LoadPlayersAsync();
+    partial void OnSelectedPlayerChanged(Player? value)
+    {
+        if (value is not null && IsNotEditing) _ = OpenProfileAsync(value);
+    }
+    private async Task LoadPlayersAsync()
+    {
+        Players.Clear();
+        SelectedPlayer = null;
+        if (SelectedTeam is null) return;
+        foreach (var player in await database.GetPlayersAsync(SelectedTeam.Id)) Players.Add(player);
+    }
 
-        [ObservableProperty]
-        private string playerName = "";
+    [RelayCommand] private async Task AddTeamAsync()
+    {
+        TeamErrorMessage = "";
+        var name = NewTeamName.Trim();
+        if (string.IsNullOrWhiteSpace(name)) 
+        { TeamErrorMessage = "Add meg a csapat nevét!"; return; }
+        if (Teams.Any(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase))) 
+        { 
+            TeamErrorMessage = "Ez a csapat már létezik!"; 
+            return; }
+        var team = new Team { Name = name };
+        await database.SaveAsync(team);
+        Teams.Add(team); SelectedTeam = team; 
+        NewTeamName = "";
+    }
 
-        [ObservableProperty]
-        private string jerseyNumberText = "";
+    [RelayCommand] private void NewPlayer() 
+    { Cancel(); IsEditing = true; }
+    [RelayCommand] private void EditPlayer()
+    {
+        if (SelectedPlayer is null) 
+        { 
+            ErrorMessage = "Először válassz ki egy játékost!";
+            return; }
+        PlayerName = SelectedPlayer.Name; JerseyNumberText = SelectedPlayer.JerseyNumber.ToString(); Position = SelectedPlayer.Position; IsEditing = true;
+    }
+    [RelayCommand] private async Task SavePlayerAsync()
+    {
+        if (SelectedTeam is null) 
+        { ErrorMessage = "Először válassz ki egy csapatot!"; return; }
 
-        [ObservableProperty]
-        private string position = "";
+        if (string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(Position)) 
+        { ErrorMessage = "A név és a poszt megadása kötelező."; return; }
 
-        [ObservableProperty]
-        private string errorMessage = "";
+        if (!int.TryParse(JerseyNumberText, out var number) || number is < 0 or > 99) 
+        { ErrorMessage = "A mezszám 0 és 99 közötti egész szám legyen!"; return; }
 
-        [ObservableProperty]
-        private string newTeamName = "";
+        if (Players.Any(p => p.JerseyNumber == number && p.Id != SelectedPlayer?.Id)) 
+        { ErrorMessage = "Ez a mezszám már foglalt ebben a csapatban!"; return; }
 
-        [ObservableProperty]
-        private string teamErrorMessage = "";
+        var player = SelectedPlayer ?? new Player { TeamId = SelectedTeam.Id };
+        player.Name = PlayerName.Trim(); 
+        player.JerseyNumber = number; player.Position = Position;
+        await database.SaveAsync(player); 
+        await LoadPlayersAsync(); Cancel();
+    }
+    [RelayCommand] private async Task DeletePlayerAsync()
+    {
+        if (SelectedPlayer is null) 
+        { ErrorMessage = "Válassz ki egy törlendő játékost!"; return; }
 
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotEditing))]
-        private bool isEditing;
-
-        [RelayCommand]
-        private void AddTeam()
-        {
-            TeamErrorMessage = "";
-
-            if (string.IsNullOrWhiteSpace(NewTeamName))
-            {
-                TeamErrorMessage = "Add meg a csapat nevét!";
-                return;
-            }
-
-            string teamName = NewTeamName.Trim();
-
-            bool teamExists = Teams.Any(team =>
-                string.Equals(
-                    team.Name,
-                    teamName,
-                    StringComparison.OrdinalIgnoreCase));
-
-            if (teamExists)
-            {
-                TeamErrorMessage = "Ez a csapat már létezik!";
-                return;
-            }
-
-            Team newTeam = new Team
-            {
-                Name = teamName
-            };
-
-            Teams.Add(newTeam);
-            SelectedTeam = newTeam;
-
-            NewTeamName = "";
-            TeamErrorMessage = "";
-        }
-
-        private Team? selectedTeam;
-        public Team? SelectedTeam
-        {
-            get => selectedTeam;
-            set
-            {
-                if (SetProperty(ref selectedTeam, value))
-                {
-                    RefreshPlayers();
-                    Cancel();
-                }
-            }
-        }
-
-        public bool IsNotEditing => !IsEditing;
-        public PlayersPageViewModel()
-        {
-            // Ideiglenes mintaadatok
-            Team team1 = new Team { Name = "VolleyStars" };
-
-            team1.Players.Add(new Player
-            {
-                Name = "Kovács Anna",
-                JerseyNumber = 7,
-                Position = "Feladó (F)"
-            });
-
-            team1.Players.Add(new Player
-            {
-                Name = "Nagy Petra",
-                JerseyNumber = 12,
-                Position = "Négyes ütő / Külső ütő (4Ü)"
-            });
-
-            Team team2 = new Team { Name = "NetHunters" };
-
-            team2.Players.Add(new Player
-            {
-                Name = "Szabó Dóra",
-                JerseyNumber = 4,
-                Position = "Liberó (L)"
-            });
-
-            Teams.Add(team1);
-            Teams.Add(team2);
-
-            SelectedTeam = team1;
-            RefreshPlayers();
-        }
-
-        //partial void OnSelectedTeamChanged(Team? value)
-        //{
-        //    Cancel();
-        //}
-
-        [RelayCommand]
-        private void NewPlayer()
-        {
-            Cancel();
-            IsEditing= true;
-        }
-
-        [RelayCommand]
-        private void EditPlayer()
-        {
-            if (SelectedPlayer == null)
-            {
-                ErrorMessage = "Először válassz ki egy játékost!";
-                return;
-            }
-
-            PlayerName = SelectedPlayer.Name;
-            JerseyNumberText = SelectedPlayer.JerseyNumber.ToString();
-            Position = SelectedPlayer.Position;
-
-            ErrorMessage = "";
-            IsEditing = true;
-        }
-        [RelayCommand]
-        private void Cancel()
-        {
-            SelectedPlayer = null;
-            PlayerName = "";
-            JerseyNumberText = "";
-            Position = "";
-            ErrorMessage = "";
-
-            IsEditing = false;
-        }
-
-
-        [RelayCommand]
-        private void SavePlayer()
-        {
-            ErrorMessage = "";
-
-            if (SelectedTeam == null)
-            {
-                ErrorMessage = "Először válassz ki egy csapatot!";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(PlayerName))
-            {
-                ErrorMessage = "Add meg a játékos nevét!";
-                return;
-            }
-
-            if (!int.TryParse(JerseyNumberText, out int jerseyNumber)
-                || jerseyNumber < 0 || jerseyNumber > 99)
-            {
-                ErrorMessage = "A mezszám 0 és 99 közötti egész szám legyen!";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Position))
-            {
-                ErrorMessage = "Válassz egy posztot a listából!";
-                return;
-            }
-
-            bool duplicateNumber = SelectedTeam.Players.Any(player =>
-                player.JerseyNumber == jerseyNumber
-                && player != SelectedPlayer);
-
-            if (duplicateNumber)
-            {
-                ErrorMessage = "Ez a mezszám már foglalt ebben a csapatban!";
-                return;
-            }
-
-            if (SelectedPlayer != null)
-            {
-                int index = SelectedTeam.Players.IndexOf(SelectedPlayer);
-
-                if (index < 0)
-                {
-                    ErrorMessage = "A játékos már nem található a csapatban.";
-                    return;
-                }
-
-                Player updatedPlayer = new Player
-                {
-                    Name = PlayerName.Trim(),
-                    JerseyNumber = jerseyNumber,
-                    Position = Position.Trim()
-                };
-
-                SelectedTeam.Players[index] = updatedPlayer;
-            }
-            else
-            {
-                Player newPlayer = new Player
-                {
-                    Name = PlayerName.Trim(),
-                    JerseyNumber = jerseyNumber,
-                    Position = Position.Trim()
-                };
-
-                SelectedTeam.Players.Add(newPlayer);
-            }
-            RefreshPlayers();
-            Cancel();
-        }
-
-        [RelayCommand]
-        private void DeletePlayer()
-        {
-            if (SelectedTeam == null || SelectedPlayer == null)
-            {
-                ErrorMessage = "Válassz ki egy törlendő játékost!";
-                return;
-            }
-
-            SelectedTeam.Players.Remove(SelectedPlayer);
-            RefreshPlayers();
-            Cancel();
-        }
-        private void RefreshPlayers()
-        {
-            Players.Clear();
-            if (SelectedTeam != null)
-            {
-                foreach (var player in SelectedTeam.Players)
-                {
-                    Players.Add(player);
-                }
-            }
-        }
+        await database.DeleteAsync(SelectedPlayer); await LoadPlayersAsync(); Cancel();
+    }
+    [RelayCommand] private async Task OpenProfileAsync(Player? player)
+    {
+        if (player is not null) await Shell.Current.GoToAsync(nameof(PlayerProfilePage), 
+            new Dictionary<string, object> { ["Player"] = player });
+    }
+    [RelayCommand] private void Cancel()
+    {
+        SelectedPlayer = null; 
+        PlayerName = JerseyNumberText = Position = ErrorMessage = ""; 
+        IsEditing = false;
     }
 }

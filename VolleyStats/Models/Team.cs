@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SQLite;
 
-namespace VolleyStats.Models
+namespace VolleyStats.Models;
+
+public class Team
 {
-    public class Team
-    {
-        public string Name { get; set; } = "";
-        public List<Player> Players { get; set; } = new List<Player>();
-    }
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VolleyStats.Views.PlayerProfilePage"
+             Title="Játékos profil" BackgroundColor="#1A1C23">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Text="Játékos profil" FontSize="28" FontAttributes="Bold" TextColor="#F4D03F" />
+            <Border Stroke="#2A2D39" Background="#252836" StrokeShape="RoundRectangle 16" Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Image Source="{Binding Player.PhotoPath}" HeightRequest="180" Aspect="AspectFill" BackgroundColor="#313A52" />
+                    <Button Text="Profilkép készítése kamerával" Command="{Binding TakePhotoCommand}" BackgroundColor="#5C9CE6" TextColor="#1A1C23" />
+                    <Entry Placeholder="Név" Text="{Binding Player.Name}" TextColor="#E2E8F0" PlaceholderColor="#94A3B8" />
+                    <Entry Placeholder="Mezszám" Text="{Binding Player.JerseyNumber}" Keyboard="Numeric" TextColor="#E2E8F0" PlaceholderColor="#94A3B8" />
+                    <Entry Placeholder="Poszt" Text="{Binding Player.Position}" TextColor="#E2E8F0" PlaceholderColor="#94A3B8" />
+                    <Entry Placeholder="Magasság (cm)" Text="{Binding Player.HeightCm}" Keyboard="Numeric" TextColor="#E2E8F0" PlaceholderColor="#94A3B8" />
+                    <Entry Placeholder="Ütőmagasság (cm)" Text="{Binding Player.SpikeHeightCm}" Keyboard="Numeric" TextColor="#E2E8F0" PlaceholderColor="#94A3B8" />
+                    <Label Text="{Binding ErrorMessage}" TextColor="#F4D03F" />
+                    <Button Text="Profil mentése" Command="{Binding SaveCommand}" BackgroundColor="#F4D03F" TextColor="#1A1C23" FontAttributes="Bold" />
+                    <Button Text="Profil megosztása" Command="{Binding ShareProfileCommand}" BackgroundColor="#313A52" TextColor="#E2E8F0" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

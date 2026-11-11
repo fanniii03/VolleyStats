@@ -1,216 +1,112 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VolleyStats.Models;
+using VolleyStats.Services;
 
+namespace VolleyStats.ViewModels;
 
-namespace VolleyStats.ViewModels
+public partial class MatchesPageViewModel : ObservableObject
 {
-    public partial class MatchesPageViewModel : ObservableObject
+    private readonly DatabaseService database;
+    public ObservableCollection<Match> Matches { get; } = new();
+    public IReadOnlyList<string> AvailableStatuses { get; } = ["Tervezett", "Lejátszott", "Elmaradt"];
+    [ObservableProperty] 
+    private Match? selectedMatch;
+    [ObservableProperty] 
+    private string homeTeam = "";
+    [ObservableProperty] 
+    private string awayTeam = "";
+    [ObservableProperty] 
+    private DateTime matchDate = DateTime.Today;
+    [ObservableProperty] 
+    private string location = "";
+    [ObservableProperty] 
+    private string status = "Tervezett";
+    [ObservableProperty] 
+    private string homeSetsWonText = "0";
+    [ObservableProperty] 
+    private string awaySetsWonText = "0";
+    [ObservableProperty] 
+    private string errorMessage = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(IsNotEditing))] private bool isEditing;
+    public bool IsNotEditing => !IsEditing;
+    public MatchesPageViewModel(DatabaseService database) => this.database = database;
+
+    public async Task LoadAsync()
     {
-        public ObservableCollection<Match> Matches { get; } = new();
+        await database.InitializeAsync();
+        Matches.Clear();
+        foreach (var match in await database.GetMatchesAsync()) Matches.Add(match);
+    }
 
-        public List<string> AvailableStatuses { get; } = new()
-        {
-            "Tervezett",
-            "Lejátszott",
-            "Elmaradt"
-        };
-
-        [ObservableProperty]
-        private Match? selectedMatch;
-
-        [ObservableProperty]
-        private string homeTeam = "";
-
-        [ObservableProperty]
-        private string awayTeam = "";
-
-        [ObservableProperty]
-        private DateTime matchDate = DateTime.Today;
-
-        [ObservableProperty]
-        private string location = "";
-
-        [ObservableProperty]
-        private string status = "Tervezett";
-
-        [ObservableProperty]
-        private string errorMessage = "";
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotEditing))]
-        private bool isEditing;
-
-        public bool IsNotEditing => !IsEditing;
-
-        public MatchesPageViewModel()
-        {
-            // Ideiglenes mintaadatok
-            Matches.Add(new Match
-            {
-                HomeTeam = "VolleyStars",
-                AwayTeam = "Dunaújváros",
-                Date = DateTime.Today.AddDays(3),
-                Location = "Budapest",
-                Status = "Tervezett"
-            });
-
-            //Matches.Add(new Match
-            //{
-            //    HomeTeam = "VolleyStars",
-            //    AwayTeam = "Szeged",
-            //    Date = DateTime.Today.AddDays(-2),
-            //    Location = "Szeged",
-            //    Status = "Lejátszott",
-            //    HomeScore = 3,
-            //    AwayScore = 1
-            //});
-            Matches.Add(new Match
-            {
-                HomeTeam = "VolleyStars",
-                AwayTeam = "Szeged",
-                Date = DateTime.Today.AddDays(-2),
-                Location = "Szeged",
-                Status = "Lejátszott",
-
-                // JAVÍTÁS: Score helyett SetsWon (Szettarány)
-                HomeSetsWon = 3,
-                AwaySetsWon = 1,
-
-                // TESZT ADATOK a legördülő kártyához:
-                Sets = new List<SetDetail>
-        {
-            new SetDetail
-            {
-                SetNumber = 1, HomeScore = 25, AwayScore = 21,
-                HomeTimeouts = new List<string>{ "14:15", "20:22" },
-                AwayTimeouts = new List<string>{ "10:5" }
-            },
-            new SetDetail { SetNumber = 2, HomeScore = 25, AwayScore = 18 },
-            new SetDetail { SetNumber = 3, HomeScore = 22, AwayScore = 25 },
-            new SetDetail { SetNumber = 4, HomeScore = 25, AwayScore = 20 }
+    [RelayCommand] private void NewMatch() 
+    { Cancel(); IsEditing = true; }
+    [RelayCommand] private void EditMatch()
+    {
+        if (SelectedMatch is null) 
+        { 
+            ErrorMessage = "Először válassz ki egy mérkőzést!"; 
+            return; 
         }
-            });
+        HomeTeam = SelectedMatch.HomeTeam; 
+        AwayTeam = SelectedMatch.AwayTeam; 
+        MatchDate = SelectedMatch.Date;
+        Location = SelectedMatch.Location; 
+        Status = SelectedMatch.Status;
+        HomeSetsWonText = SelectedMatch.HomeSetsWon.ToString(); 
+        AwaySetsWonText = SelectedMatch.AwaySetsWon.ToString();
+        IsEditing = true;
+    }
+
+    [RelayCommand] private async Task SaveMatchAsync()
+    {
+        if (string.IsNullOrWhiteSpace(HomeTeam) || string.IsNullOrWhiteSpace(AwayTeam) 
+            || string.IsNullOrWhiteSpace(Location)) 
+        { 
+            ErrorMessage = "Minden mező kitöltése kötelező."; 
+            return; 
         }
-
-        [RelayCommand]
-        private void NewMatch()
-        {
-            Cancel();
-            MatchDate = DateTime.Today;
-            Status = "Tervezett";
-            IsEditing = true;
+        if (string.Equals(HomeTeam.Trim(), AwayTeam.Trim(), StringComparison.OrdinalIgnoreCase)) 
+        { 
+            ErrorMessage = "A két csapat nem lehet ugyanaz."; 
+            return; }
+        if (!int.TryParse(HomeSetsWonText, out var homeSets) || !int.TryParse(AwaySetsWonText, out var awaySets)
+            || homeSets is < 0 or > 3 || awaySets is < 0 or > 3) 
+        { 
+            ErrorMessage = "A szettarány 0 és 3 közötti egész szám legyen."; return; 
         }
-
-        [RelayCommand]
-        private void EditMatch()
-        {
-            if (SelectedMatch == null)
-            {
-                ErrorMessage = "Először válassz ki egy mérkőzést!";
-                return;
-            }
-
-            HomeTeam = SelectedMatch.HomeTeam;
-            AwayTeam = SelectedMatch.AwayTeam;
-            MatchDate = SelectedMatch.Date;
-            Location = SelectedMatch.Location;
-            Status = SelectedMatch.Status;
-
-            ErrorMessage = "";
-            IsEditing = true;
+        if (Status == "Lejátszott" && (homeSets == awaySets || Math.Max(homeSets, awaySets) != 3)) 
+        { 
+            ErrorMessage = "Lejátszott meccsnél az egyik csapatnak pontosan 3 szettet kell nyernie."; 
+            return; 
         }
+        var match = SelectedMatch ?? new Match();
+        match.HomeTeam = HomeTeam.Trim(); match.AwayTeam = AwayTeam.Trim(); 
+        match.Date = MatchDate;
+        match.Location = Location.Trim(); 
+        match.Status = Status;
+        match.HomeSetsWon = homeSets; match.AwaySetsWon = awaySets;
+        await database.SaveAsync(match); 
+        await LoadAsync(); Cancel();
+    }
 
-        [RelayCommand]
-        private void SaveMatch()
-        {
-            ErrorMessage = "";
-
-            if (string.IsNullOrWhiteSpace(HomeTeam))
-            {
-                ErrorMessage = "Add meg a hazai csapat nevét!"; return;
-            }
-            if (string.IsNullOrWhiteSpace(AwayTeam))
-            {
-                ErrorMessage = "Add meg a vendég csapat nevét!"; return;
-            }
-            if (HomeTeam.Trim().Equals(AwayTeam.Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                ErrorMessage = "A hazai és a vendég csapat nem lehet ugyanaz!"; return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Location))
-            {
-                ErrorMessage = "Add meg a mérkőzés helyszínét!";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Status))
-            {
-                ErrorMessage = "Válassz állapotot!";
-                return;
-            }
-
-            Match newMatch = new Match
-            {
-                HomeTeam = HomeTeam.Trim(),
-                AwayTeam = AwayTeam.Trim(),
-                Date = MatchDate,
-                Location = Location.Trim(),
-                Status = Status
-            };
-
-            if (SelectedMatch != null)
-            {
-                int index = Matches.IndexOf(SelectedMatch);
-
-                if (index < 0)
-                {
-                    ErrorMessage = "A mérkőzés már nem található a listában.";
-                    return;
-                }
-
-                Matches[index] = newMatch;
-            }
-            else
-            {
-                Matches.Add(newMatch);
-            }
-
-            Cancel();
+    [RelayCommand] private async Task DeleteMatchAsync()
+    {
+        if (SelectedMatch is null) 
+        { 
+            ErrorMessage = "Válassz ki egy törlendő mérkőzést!";
+            return; 
         }
-
-        [RelayCommand]
-        private void DeleteMatch()
-        {
-            if (SelectedMatch == null)
-            {
-                ErrorMessage = "Válassz ki egy törlendő mérkőzést!";
-                return;
-            }
-
-            Matches.Remove(SelectedMatch);
-            Cancel();
-        }
-
-        [RelayCommand]
-        private void Cancel()
-        {
-            SelectedMatch = null;
-            HomeTeam = "";
-            AwayTeam = "";
-            MatchDate = DateTime.Today;
-            Location = "";
-            Status = "Tervezett";
-            ErrorMessage = "";
-            IsEditing = false;
-        }
+        await database.DeleteAsync(SelectedMatch); 
+        await LoadAsync(); Cancel();
+    }
+    [RelayCommand] private void Cancel()
+    {
+        SelectedMatch = null; 
+        HomeTeam = AwayTeam = Location = ErrorMessage = ""; 
+        HomeSetsWonText = AwaySetsWonText = "0";
+        MatchDate = DateTime.Today; Status = "Tervezett"; 
+        IsEditing = false;
     }
 }

@@ -1,10 +1,12 @@
-﻿namespace VolleyStats
+using VolleyStats.Views;
+
+namespace VolleyStats;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+        Routing.RegisterRoute(nameof(PlayerProfilePage), typeof(PlayerProfilePage));
     }
 }
